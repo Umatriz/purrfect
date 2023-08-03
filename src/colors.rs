@@ -5,10 +5,10 @@ use owo_colors::AnsiColors;
 
 use crate::prelude::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Color {
-    pub background: Wrapper<owo_colors::AnsiColors>,
-    pub color: Wrapper<owo_colors::AnsiColors>,
+    pub(super) background: Wrapper<owo_colors::AnsiColors>,
+    pub(super) color: Wrapper<owo_colors::AnsiColors>,
 }
 
 struct ColorVisitor;
@@ -120,7 +120,7 @@ impl<'de> Deserialize<'de> for Wrapper<owo_colors::AnsiColors> {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_string(ColorVisitor)
+        deserializer.deserialize_str(ColorVisitor)
     }
 }
 
