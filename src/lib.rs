@@ -8,11 +8,11 @@ pub use crate::builder::*;
 
 use log::{Level, LevelFilter, Log};
 
-struct Logger {
+pub struct Purrfect {
     loggers: Vec<Box<dyn Log>>,
 }
 
-impl Log for Logger {
+impl Log for Purrfect {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         metadata.level() <= Level::Info
     }
@@ -62,7 +62,7 @@ const CONSOLE: Console = Console;
 const FILE: File = File;
 
 pub fn setup() {
-    let logger = Logger {
+    let logger = Purrfect {
         loggers: vec![Box::new(CONSOLE), Box::new(FILE)],
     };
 

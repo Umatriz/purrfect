@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::colors::Color;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct Config {
     error: Color,
     warn: Color,

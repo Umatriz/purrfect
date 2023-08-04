@@ -5,10 +5,16 @@ use owo_colors::AnsiColors;
 
 use crate::prelude::*;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct Color {
     pub(super) background: Wrapper<owo_colors::AnsiColors>,
     pub(super) color: Wrapper<owo_colors::AnsiColors>,
+}
+
+impl Default for Wrapper<owo_colors::AnsiColors> {
+    fn default() -> Self {
+        Self(owo_colors::AnsiColors::Default)
+    }
 }
 
 struct ColorVisitor;
