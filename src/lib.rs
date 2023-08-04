@@ -3,6 +3,7 @@ pub mod colors;
 pub mod config;
 pub mod loggers;
 pub mod prelude;
+pub mod repository;
 
 pub use crate::builder::*;
 

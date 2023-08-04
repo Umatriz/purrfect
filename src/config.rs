@@ -1,55 +1,77 @@
 use serde::{Deserialize, Serialize};
 
-use crate::colors::Color;
+use crate::{colors::LevelColors, prelude::Wrapper, repository::logger_level::LoggerLevel};
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct Config {
-    error: Color,
-    warn: Color,
-    info: Color,
-    debug: Color,
-    trace: Color,
+    error: LevelColors,
+    warn: LevelColors,
+    info: LevelColors,
+    debug: LevelColors,
+    trace: LevelColors,
+    loggers: Vec<Logger>,
 }
 
-#[test]
-fn serialize_test() {
-    let cfg = Config {
-        error: Color {
-            background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
-            color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
-        },
-        warn: Color {
-            background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
-            color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
-        },
-        info: Color {
-            background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
-            color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
-        },
-        debug: Color {
-            background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
-            color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
-        },
-        trace: Color {
-            background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
-            color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
-        },
-    };
-
-    let _ = std::fs::File::create("Purrfect.toml").unwrap();
-
-    let content = toml::to_string_pretty(&cfg).unwrap();
-
-    std::fs::write("Purrfect.toml", &content).unwrap();
-
-    println!("{}", content)
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+pub struct Logger {
+    #[serde(rename = "type")]
+    _type: LoggerType,
+    level: LoggerLevel,
 }
 
-#[test]
-fn deserialize_test() {
-    let file = std::fs::read_to_string("Purrfect.toml").unwrap();
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+pub enum LoggerType {
+    #[default]
+    Console,
+    File,
+}
 
-    let content = toml::from_str::<Config>(&file).unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    println!("{:#?}", content)
+    #[test]
+    fn serialize_test() {
+        #[warn(dead_code)]
+        let cfg = Config {
+            error: LevelColors {
+                background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
+                color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
+            },
+            warn: LevelColors {
+                background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
+                color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
+            },
+            info: LevelColors {
+                background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
+                color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
+            },
+            debug: LevelColors {
+                background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
+                color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
+            },
+            trace: LevelColors {
+                background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
+                color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
+            },
+            loggers: todo!(),
+        };
+
+        let _ = std::fs::File::create("Purrfect.toml").unwrap();
+
+        let content = toml::to_string_pretty(&cfg).unwrap();
+
+        std::fs::write("Purrfect.toml", &content).unwrap();
+
+        println!("{}", content)
+    }
+
+    #[test]
+    fn deserialize_test() {
+        let file = std::fs::read_to_string("Purrfect.toml").unwrap();
+
+        let content = toml::from_str::<Config>(&file).unwrap();
+
+        println!("{:#?}", content)
+    }
 }

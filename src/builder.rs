@@ -19,16 +19,28 @@ impl PurrfectBuilder<NoConfig> {
     }
 }
 
-impl<A> PurrfectBuilder<A> {
-    pub fn config<P: AsRef<Path>>(self, path: P) -> PurrfectBuilder<ConfigFile<P>> {
+impl PurrfectBuilder<NoConfig> {
+    pub fn file<P: AsRef<Path>>(self, path: P) -> PurrfectBuilder<ConfigFile<P>> {
         PurrfectBuilder {
             config: ConfigFile::<P>(path),
         }
+    }
+
+    pub fn config(self, cfg: Config) -> PurrfectBuilder<Config> {
+        PurrfectBuilder { config: cfg }
     }
 }
 
 impl<P: AsRef<Path>> PurrfectBuilder<ConfigFile<P>> {
     pub fn build(self) -> Purrfect {
+        // TODO
+        Purrfect { loggers: todo!() }
+    }
+}
+
+impl PurrfectBuilder<Config> {
+    pub fn build(self) -> Purrfect {
+        // TODO
         Purrfect { loggers: todo!() }
     }
 }
