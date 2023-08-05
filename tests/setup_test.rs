@@ -4,5 +4,5 @@ use purrfect::setup;
 fn setup_test() {
     setup();
 
-    log::info!("info")
+    log::error!("info")
 }
