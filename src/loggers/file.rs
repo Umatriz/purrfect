@@ -5,9 +5,21 @@ use std::{
 
 use log::{Level, Log};
 
+#[derive(Debug)]
 pub struct File {
     stream: Mutex<BufWriter<std::fs::File>>,
     level: Level,
+}
+
+impl Default for File {
+    fn default() -> Self {
+        Self {
+            stream: Mutex::new(BufWriter::new(
+                std::fs::File::create("default.log").unwrap(),
+            )),
+            level: Level::Info,
+        }
+    }
 }
 
 impl File {

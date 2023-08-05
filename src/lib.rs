@@ -5,7 +5,7 @@ pub mod loggers;
 pub mod prelude;
 pub mod repository;
 
-use std::{fs::OpenOptions, io};
+use std::fs::OpenOptions;
 
 pub use crate::builder::*;
 

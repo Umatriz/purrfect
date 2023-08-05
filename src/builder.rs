@@ -31,12 +31,18 @@ impl PurrfectBuilder<NoConfig> {
     }
 }
 
-impl<P: AsRef<Path>> PurrfectBuilder<ConfigFile<P>> {
-    pub fn build(self) -> Purrfect {
-        // TODO
-        Purrfect { loggers: todo!() }
-    }
-}
+// impl<P: AsRef<Path>> PurrfectBuilder<ConfigFile<P>> {
+//     pub fn build(self) -> Purrfect {
+//         // Panic if cannot read
+//         let file = std::fs::read_to_string(self.config.0).unwrap();
+
+//         // Panic if cannot deserialize
+//         let config = toml::from_str::<Config>(&file).unwrap();
+//         Purrfect {
+//             loggers: config.loggers,
+//         }
+//     }
+// }
 
 impl PurrfectBuilder<Config> {
     pub fn build(self) -> Purrfect {

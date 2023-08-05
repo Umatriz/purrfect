@@ -2,11 +2,11 @@ use serde::{de::Visitor, Deserialize, Serialize};
 
 use crate::prelude::*;
 
-pub type LoggerLevel = Wrapper<log::LevelFilter>;
+pub type LoggerLevel = Wrapper<log::Level>;
 
 impl Default for LoggerLevel {
     fn default() -> Self {
-        Self(log::LevelFilter::Info)
+        Self(log::Level::Info)
     }
 }
 
@@ -24,11 +24,11 @@ impl<'de> Visitor<'de> for LoggerLevelVisitor {
         E: serde::de::Error,
     {
         match v.as_str() {
-            "Error" => Ok(Wrapper(log::LevelFilter::Error)),
-            "Warn" => Ok(Wrapper(log::LevelFilter::Warn)),
-            "Info" => Ok(Wrapper(log::LevelFilter::Info)),
-            "Debug" => Ok(Wrapper(log::LevelFilter::Debug)),
-            "Trace" => Ok(Wrapper(log::LevelFilter::Trace)),
+            "Error" => Ok(Wrapper(log::Level::Error)),
+            "Warn" => Ok(Wrapper(log::Level::Warn)),
+            "Info" => Ok(Wrapper(log::Level::Info)),
+            "Debug" => Ok(Wrapper(log::Level::Debug)),
+            "Trace" => Ok(Wrapper(log::Level::Trace)),
             _ => Err(serde::de::Error::unknown_variant(
                 &v,
                 &["Error", "Warn", "Info", "Debug", "Trace"],
@@ -41,11 +41,11 @@ impl<'de> Visitor<'de> for LoggerLevelVisitor {
         E: serde::de::Error,
     {
         match v {
-            "Error" => Ok(Wrapper(log::LevelFilter::Error)),
-            "Warn" => Ok(Wrapper(log::LevelFilter::Warn)),
-            "Info" => Ok(Wrapper(log::LevelFilter::Info)),
-            "Debug" => Ok(Wrapper(log::LevelFilter::Debug)),
-            "Trace" => Ok(Wrapper(log::LevelFilter::Trace)),
+            "Error" => Ok(Wrapper(log::Level::Error)),
+            "Warn" => Ok(Wrapper(log::Level::Warn)),
+            "Info" => Ok(Wrapper(log::Level::Info)),
+            "Debug" => Ok(Wrapper(log::Level::Debug)),
+            "Trace" => Ok(Wrapper(log::Level::Trace)),
             _ => Err(serde::de::Error::unknown_variant(
                 v,
                 &["Error", "Warn", "Info", "Debug", "Trace"],
@@ -69,12 +69,11 @@ impl Serialize for LoggerLevel {
         S: serde::Serializer,
     {
         match self.0 {
-            log::LevelFilter::Off => serializer.serialize_str("Off"),
-            log::LevelFilter::Error => serializer.serialize_str("Error"),
-            log::LevelFilter::Warn => serializer.serialize_str("Warn"),
-            log::LevelFilter::Info => serializer.serialize_str("Info"),
-            log::LevelFilter::Debug => serializer.serialize_str("Debug"),
-            log::LevelFilter::Trace => serializer.serialize_str("Trace"),
+            log::Level::Error => serializer.serialize_str("Error"),
+            log::Level::Warn => serializer.serialize_str("Warn"),
+            log::Level::Info => serializer.serialize_str("Info"),
+            log::Level::Debug => serializer.serialize_str("Debug"),
+            log::Level::Trace => serializer.serialize_str("Trace"),
         }
     }
 }

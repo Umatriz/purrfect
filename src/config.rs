@@ -1,14 +1,22 @@
+use std::fs::OpenOptions;
+
+use log::Log;
 use serde::{Deserialize, Serialize};
 
-use crate::{colors::LevelColors, repository::logger_level::LoggerLevel};
+use crate::{
+    colors::LevelColors,
+    loggers::{Console, File},
+    prelude::Wrapper,
+    repository::logger_level::LoggerLevel,
+};
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct Config {
-    level_colors: LoggerColors,
-    loggers: Vec<Logger>,
+    pub level_colors: LoggerColors,
+    pub loggers: Vec<Logger>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct LoggerColors {
     error: LevelColors,
     warn: LevelColors,
@@ -17,18 +25,46 @@ pub struct LoggerColors {
     trace: LevelColors,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
-pub struct Logger {
-    #[serde(rename = "type")]
-    _type: LoggerType,
+#[derive(Deserialize, Serialize, Debug)]
+pub enum Logger {
+    Console(ConsoleConfig),
+    File(FileConfig),
+}
+
+impl Default for Logger {
+    fn default() -> Self {
+        Self::Console(ConsoleConfig {
+            level: Wrapper(log::Level::Info),
+        })
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Default)]
+pub struct ConsoleConfig {
     level: LoggerLevel,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
-pub enum LoggerType {
-    #[default]
-    Console,
-    File,
+#[derive(Deserialize, Serialize, Debug, Default)]
+pub struct FileConfig {
+    path: String,
+    level: LoggerLevel,
+}
+
+impl Logger {
+    pub fn choose<'a>(&'a self) -> Box<dyn Log + '_> {
+        match self {
+            Logger::Console(c) => Console::new_boxed(c.level.0),
+            Logger::File(c) => File::new_boxed(c.level.0, {
+                OpenOptions::new()
+                    .read(true)
+                    .write(true)
+                    .create(true)
+                    .append(true)
+                    .open(&c.path)
+                    .unwrap()
+            }),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -63,10 +99,10 @@ mod tests {
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
             },
-            loggers: vec![Logger {
-                _type: LoggerType::Console,
-                level: Wrapper(log::LevelFilter::Debug),
-            }],
+            loggers: vec![Logger::File(FileConfig {
+                path: "St.log".to_string(),
+                level: Wrapper(log::Level::Trace),
+            })],
         };
 
         let _ = std::fs::File::create("Purrfect.toml").unwrap();

@@ -2,10 +2,20 @@ use std::io::{self, Write};
 
 use log::{Level, Log};
 
+#[derive(Debug)]
 pub struct Console {
     stream: io::Stdout,
     // colors: LoggerColors,
     level: Level,
+}
+
+impl Default for Console {
+    fn default() -> Self {
+        Self {
+            stream: io::stdout(),
+            level: Level::Info,
+        }
+    }
 }
 
 impl Console {
