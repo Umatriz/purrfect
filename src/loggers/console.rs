@@ -2,8 +2,6 @@ use std::io::{self, Write};
 
 use log::{Level, Log};
 
-use crate::config::LoggerColors;
-
 pub struct Console {
     stream: io::Stdout,
     // colors: LoggerColors,
