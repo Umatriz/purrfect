@@ -1,10 +1,12 @@
-use purrfect::setup;
-
 #[test]
 fn setup_test() {
-    setup();
+    purrfect::PurrfectBuilder::new()
+        .file("Purrfect.toml")
+        .build();
 
     log::error!("Error");
-    log::error!("Error2");
-    log::error!("Error3");
+    log::info!("info");
+    log::debug!("debug");
+    log::warn!("warn");
+    log::trace!("trace")
 }

@@ -33,26 +33,3 @@ impl Log for Purrfect {
         }
     }
 }
-
-pub fn setup() {
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .append(true)
-        .open("test.txt")
-        .unwrap();
-
-    let logger = Purrfect {
-        loggers: vec![
-            Console::new_boxed(Level::Info),
-            File::new_boxed(Level::Info, file),
-        ],
-    };
-
-    let l = log::set_boxed_logger(Box::new(logger));
-
-    if l.is_ok() {
-        log::set_max_level(LevelFilter::Info)
-    }
-}

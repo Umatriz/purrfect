@@ -51,7 +51,7 @@ pub struct FileConfig {
 }
 
 impl Logger {
-    pub fn choose<'a>(&'a self) -> Box<dyn Log + '_> {
+    pub fn prepare(self) -> Box<dyn Log> {
         match self {
             Logger::Console(c) => Console::new_boxed(c.level.0),
             Logger::File(c) => File::new_boxed(c.level.0, {
@@ -74,6 +74,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "don't work with deserialize_test in one time"]
     fn serialize_test() {
         #[warn(dead_code)]
         let cfg = Config {
@@ -115,7 +116,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "don't work with serialize_test in one time"]
     fn deserialize_test() {
         let file = std::fs::read_to_string("Purrfect.toml").unwrap();
 
