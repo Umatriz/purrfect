@@ -2,3 +2,4 @@
 
 pub mod color;
 pub mod logger_level;
+pub mod pattern;

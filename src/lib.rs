@@ -1,14 +1,12 @@
+pub(crate) mod colors;
+pub(crate) mod loggers;
+pub(crate) mod prelude;
+pub(crate) mod repository;
+
 pub mod builder;
-pub mod colors;
 pub mod config;
-pub mod loggers;
-pub mod prelude;
-pub mod repository;
 
-use std::fs::OpenOptions;
-
-use log::{Level, LevelFilter, Log};
-use loggers::{console::Console, File};
+use log::{Level, Log};
 
 pub use crate::builder::*;
 

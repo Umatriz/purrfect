@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use owo_colors::AnsiColors;
 use serde::{de::Visitor, Deserialize, Serialize};
 
@@ -8,6 +10,33 @@ pub type LoggerColor = Wrapper<owo_colors::AnsiColors>;
 impl Default for LoggerColor {
     fn default() -> Self {
         Self(owo_colors::AnsiColors::Default)
+    }
+}
+
+impl FromStr for LoggerColor {
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Black" => Ok(Wrapper(AnsiColors::Black)),
+            "Blue" => Ok(Wrapper(AnsiColors::Blue)),
+            "BrightBlack" => Ok(Wrapper(AnsiColors::BrightBlack)),
+            "BrightBlue" => Ok(Wrapper(AnsiColors::BrightBlue)),
+            "BrightCyan" => Ok(Wrapper(AnsiColors::BrightCyan)),
+            "BrightGreen" => Ok(Wrapper(AnsiColors::BrightGreen)),
+            "BrightMagenta" => Ok(Wrapper(AnsiColors::BrightMagenta)),
+            "BrightRed" => Ok(Wrapper(AnsiColors::BrightRed)),
+            "BrightWhite" => Ok(Wrapper(AnsiColors::BrightWhite)),
+            "BrightYellow" => Ok(Wrapper(AnsiColors::BrightYellow)),
+            "Cyan" => Ok(Wrapper(AnsiColors::Cyan)),
+            "Default" => Ok(Wrapper(AnsiColors::Default)),
+            "Green" => Ok(Wrapper(AnsiColors::Green)),
+            "Magenta" => Ok(Wrapper(AnsiColors::Magenta)),
+            "Red" => Ok(Wrapper(AnsiColors::Red)),
+            "White" => Ok(Wrapper(AnsiColors::White)),
+            "Yellow" => Ok(Wrapper(AnsiColors::Yellow)),
+            _ => Err("No such color".into()),
+        }
     }
 }
 

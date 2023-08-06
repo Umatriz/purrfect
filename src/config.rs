@@ -1,7 +1,4 @@
-use std::{
-    fs::OpenOptions,
-    path::{Path, PathBuf},
-};
+use std::{fs::OpenOptions, path::PathBuf};
 
 use log::Log;
 use serde::{Deserialize, Serialize};
@@ -108,10 +105,15 @@ mod tests {
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
             },
-            loggers: vec![Logger::File(FileConfig {
-                path: "St.log".to_string(),
-                level: Wrapper(log::Level::Trace),
-            })],
+            loggers: vec![
+                Logger::File(FileConfig {
+                    path: "St.log".to_string(),
+                    level: Wrapper(log::Level::Trace),
+                }),
+                Logger::Console(ConsoleConfig {
+                    level: Wrapper(log::Level::Trace),
+                }),
+            ],
         };
 
         let _ = std::fs::File::create("Purrfect.toml").unwrap();
