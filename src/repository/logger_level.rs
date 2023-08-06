@@ -1,6 +1,6 @@
 use serde::{de::Visitor, Deserialize, Serialize};
 
-use crate::prelude::*;
+use crate::prelude::Wrapper;
 
 pub type LoggerLevel = Wrapper<log::Level>;
 

@@ -1,7 +1,7 @@
 #[test]
 fn setup_test() {
     purrfect::PurrfectBuilder::new()
-        .file("Purrfect.toml")
+        .config("Purrfect.toml")
         .build();
 
     log::error!("Error");

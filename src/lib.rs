@@ -7,10 +7,10 @@ pub mod repository;
 
 use std::fs::OpenOptions;
 
-pub use crate::builder::*;
-
 use log::{Level, LevelFilter, Log};
 use loggers::{console::Console, File};
+
+pub use crate::builder::*;
 
 pub struct Purrfect {
     loggers: Vec<Box<dyn Log>>,

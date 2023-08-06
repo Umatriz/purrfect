@@ -1,7 +1,7 @@
 use owo_colors::AnsiColors;
 use serde::{de::Visitor, Deserialize, Serialize};
 
-use crate::prelude::*;
+use crate::prelude::Wrapper;
 
 pub type LoggerColor = Wrapper<owo_colors::AnsiColors>;
 

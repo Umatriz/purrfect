@@ -1,4 +1,7 @@
-use std::fs::OpenOptions;
+use std::{
+    fs::OpenOptions,
+    path::{Path, PathBuf},
+};
 
 use log::Log;
 use serde::{Deserialize, Serialize};
@@ -6,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     colors::LevelColors,
     loggers::{Console, File},
-    prelude::Wrapper,
+    prelude::*,
     repository::logger_level::LoggerLevel,
 };
 
@@ -51,18 +54,23 @@ pub struct FileConfig {
 }
 
 impl Logger {
-    pub fn prepare(self) -> Box<dyn Log> {
+    pub fn prepare(self) -> Result<Box<dyn Log>> {
         match self {
-            Logger::Console(c) => Console::new_boxed(c.level.0),
-            Logger::File(c) => File::new_boxed(c.level.0, {
-                OpenOptions::new()
+            Logger::Console(c) => Ok(Console::new_boxed(c.level.0)),
+            Logger::File(c) => {
+                if let Some(path) = PathBuf::from(&c.path).parent() {
+                    std::fs::create_dir_all(path)?
+                }
+
+                let file = OpenOptions::new()
                     .read(true)
                     .write(true)
                     .create(true)
                     .append(true)
-                    .open(&c.path)
-                    .unwrap()
-            }),
+                    .open(c.path)?;
+
+                Ok(File::new_boxed(c.level.0, file))
+            }
         }
     }
 }
