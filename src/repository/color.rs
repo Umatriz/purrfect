@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use owo_colors::colors::*;
 use owo_colors::AnsiColors;
 use serde::{de::Visitor, Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use crate::prelude::Wrapper;
 
 pub type LoggerColor = Wrapper<owo_colors::AnsiColors>;
 
-impl Default for LoggerColor {
+impl core::default::Default for LoggerColor {
     fn default() -> Self {
         Self(owo_colors::AnsiColors::Default)
     }
