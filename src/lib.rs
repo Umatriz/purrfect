@@ -7,11 +7,12 @@ pub mod builder;
 pub mod config;
 
 use log::{Level, Log};
+use loggers::Logger;
 
 pub use crate::builder::*;
 
 pub struct Purrfect {
-    loggers: Vec<Box<dyn Log>>,
+    loggers: Vec<Logger>,
 }
 
 impl Log for Purrfect {

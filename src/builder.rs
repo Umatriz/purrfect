@@ -5,10 +5,10 @@ use log::Log;
 use crate::{config::Config, prelude::Result, Purrfect};
 
 #[derive(Default, Clone)]
-pub struct NoConfig;
+pub(crate) struct NoConfig;
 
 #[derive(Default, Clone)]
-pub struct ConfigFile<P: AsRef<Path>>(P);
+pub(crate) struct ConfigFile<P: AsRef<Path>>(P);
 
 #[derive(Default, Clone)]
 pub struct PurrfectBuilder<A> {
@@ -38,7 +38,7 @@ impl<A> PurrfectBuilder<A> {
         let config_iter = config.loggers.into_iter();
 
         let loggers = config_iter
-            .map(|i| i.prepare())
+            .map(|i| i.prepare(&config))
             .filter_map(|i| i.ok())
             .collect::<Vec<Box<dyn Log>>>();
 

@@ -4,34 +4,41 @@ use log::Log;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    colors::LevelColors,
-    loggers::{Console, File},
+    colors::Colors,
+    loggers::{Console, File, Logger},
     prelude::*,
-    repository::logger_level::LoggerLevel,
+    repository::{logger_level::LoggerLevel, pattern::MessagePattern},
 };
 
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct Config {
     pub level_colors: LoggerColors,
-    pub loggers: Vec<Logger>,
+    pub loggers: Vec<LoggerConfig>,
+    pub root: Root,
+}
+
+#[derive(Deserialize, Serialize, Debug, Default)]
+pub struct Root {
+    pattern: String,
+    time: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct LoggerColors {
-    error: LevelColors,
-    warn: LevelColors,
-    info: LevelColors,
-    debug: LevelColors,
-    trace: LevelColors,
+    pub error: Colors,
+    pub warn: Colors,
+    pub info: Colors,
+    pub debug: Colors,
+    pub trace: Colors,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub enum Logger {
+pub enum LoggerConfig {
     Console(ConsoleConfig),
     File(FileConfig),
 }
 
-impl Default for Logger {
+impl Default for LoggerConfig {
     fn default() -> Self {
         Self::Console(ConsoleConfig {
             level: Wrapper(log::Level::Info),
@@ -50,11 +57,19 @@ pub struct FileConfig {
     level: LoggerLevel,
 }
 
-impl Logger {
-    pub fn prepare(self) -> Result<Box<dyn Log>> {
+impl LoggerConfig {
+    pub fn prepare(self, cfg: &Config) -> Result<Logger> {
         match self {
-            Logger::Console(c) => Ok(Console::new_boxed(c.level.0)),
-            Logger::File(c) => {
+            LoggerConfig::Console(c) => Ok(Logger::Console(Console::new(
+                c.level.0,
+                MessagePattern::new(
+                    cfg.root.pattern,
+                    cfg.root.time,
+                    true,
+                    Some(cfg.level_colors),
+                ),
+            ))),
+            LoggerConfig::File(c) => {
                 if let Some(path) = PathBuf::from(&c.path).parent() {
                     std::fs::create_dir_all(path)?
                 }
@@ -66,7 +81,7 @@ impl Logger {
                     .append(true)
                     .open(c.path)?;
 
-                Ok(File::new_boxed(c.level.0, file))
+                Ok(Logger::File(File::new(c.level.0, file)))
             }
         }
     }
@@ -84,23 +99,23 @@ mod tests {
         #[warn(dead_code)]
         let cfg = Config {
             level_colors: LoggerColors {
-                error: LevelColors {
+                error: Colors {
                     background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
-                warn: LevelColors {
+                warn: Colors {
                     background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
-                info: LevelColors {
+                info: Colors {
                     background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
-                debug: LevelColors {
+                debug: Colors {
                     background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
-                trace: LevelColors {
+                trace: Colors {
                     background: crate::prelude::Wrapper(owo_colors::AnsiColors::Blue),
                     color: crate::prelude::Wrapper(owo_colors::AnsiColors::Yellow),
                 },
@@ -114,6 +129,7 @@ mod tests {
                     level: Wrapper(log::Level::Trace),
                 }),
             ],
+            root: todo!(),
         };
 
         let _ = std::fs::File::create("Purrfect.toml").unwrap();
