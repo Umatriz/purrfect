@@ -2,13 +2,13 @@ use std::io::{self, Write};
 
 use log::{Level, Log};
 
-use crate::repository::pattern::MessagePattern;
+use crate::repository::pattern::Message;
 
 #[derive(Debug)]
 pub struct Console {
     stream: io::Stdout,
     level: Level,
-    pattern: MessagePattern,
+    pattern: Message,
 }
 
 impl Default for Console {
@@ -16,13 +16,13 @@ impl Default for Console {
         Self {
             stream: io::stdout(),
             level: Level::Info,
-            pattern: MessagePattern::default(),
+            pattern: Message::default(),
         }
     }
 }
 
 impl Console {
-    pub fn new(level: Level, pattern: MessagePattern) -> Self {
+    pub fn new(level: Level, pattern: Message) -> Self {
         Self {
             stream: io::stdout(),
             level,
@@ -30,7 +30,7 @@ impl Console {
         }
     }
 
-    pub fn new_boxed(level: Level, pattern: MessagePattern) -> Box<Self> {
+    pub fn new_boxed(level: Level, pattern: Message) -> Box<Self> {
         Box::new(Self::new(level, pattern))
     }
 }
@@ -42,7 +42,7 @@ impl Log for Console {
 
     fn log(&self, record: &log::Record) {
         if self.enabled(record.metadata()) {
-            write!(self.stream.lock(), "{}", record.args()).unwrap();
+            writeln!(self.stream.lock(), "{}", self.pattern.format_parsed(record)).unwrap();
         }
     }
 

@@ -1,30 +1,32 @@
 use std::path::Path;
 
-use log::Log;
+use crate::{config::Config, loggers::Logger, prelude::Result, Purrfect};
 
-use crate::{config::Config, prelude::Result, Purrfect};
+pub mod units {
+    //! This module provides unit structs for `PurrfectBuilder`
 
-#[derive(Default, Clone)]
-pub(crate) struct NoConfig;
+    #[derive(Default, Clone)]
+    pub struct NoConfig;
 
-#[derive(Default, Clone)]
-pub(crate) struct ConfigFile<P: AsRef<Path>>(P);
+    #[derive(Default, Clone)]
+    pub struct ConfigFile<P: AsRef<std::path::Path>>(pub P);
+}
 
 #[derive(Default, Clone)]
 pub struct PurrfectBuilder<A> {
     config: A,
 }
 
-impl PurrfectBuilder<NoConfig> {
+impl PurrfectBuilder<units::NoConfig> {
     pub fn new() -> Self {
         PurrfectBuilder::default()
     }
 }
 
-impl PurrfectBuilder<NoConfig> {
-    pub fn config<P: AsRef<Path>>(self, path: P) -> PurrfectBuilder<ConfigFile<P>> {
+impl PurrfectBuilder<units::NoConfig> {
+    pub fn config<P: AsRef<Path>>(self, path: P) -> PurrfectBuilder<units::ConfigFile<P>> {
         PurrfectBuilder {
-            config: ConfigFile::<P>(path),
+            config: units::ConfigFile::<P>(path),
         }
     }
 
@@ -35,12 +37,12 @@ impl PurrfectBuilder<NoConfig> {
 
 impl<A> PurrfectBuilder<A> {
     fn pre_build(config: Config) -> Result<()> {
-        let config_iter = config.loggers.into_iter();
+        let config_iter = config.loggers.iter();
 
         let loggers = config_iter
             .map(|i| i.prepare(&config))
             .filter_map(|i| i.ok())
-            .collect::<Vec<Box<dyn Log>>>();
+            .collect::<Vec<Logger>>();
 
         let purr = Purrfect { loggers };
 
@@ -54,7 +56,7 @@ impl<A> PurrfectBuilder<A> {
     }
 }
 
-impl<P: AsRef<Path>> PurrfectBuilder<ConfigFile<P>> {
+impl<P: AsRef<Path>> PurrfectBuilder<units::ConfigFile<P>> {
     pub fn build(self) -> Result<()> {
         let file = std::fs::read_to_string(self.config.0)?;
 

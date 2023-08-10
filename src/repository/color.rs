@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use owo_colors::colors::*;
 use owo_colors::AnsiColors;
 use serde::{de::Visitor, Deserialize, Serialize};
 

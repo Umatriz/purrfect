@@ -25,13 +25,13 @@ impl MessagePatternBuilder {
         MessagePatternBuilder::default()
     }
 
-    pub fn pattern(&mut self, pattern: String) -> &mut MessagePatternBuilder {
-        self.pattern = pattern;
+    pub fn pattern(&mut self, pattern: &String) -> &mut MessagePatternBuilder {
+        self.pattern = pattern.to_string();
         self
     }
 
-    pub fn time_format(&mut self, time_format: String) -> &mut MessagePatternBuilder {
-        self.time_format = time_format;
+    pub fn time_format(&mut self, time_format: &String) -> &mut MessagePatternBuilder {
+        self.time_format = time_format.to_string();
         self
     }
 
@@ -40,43 +40,23 @@ impl MessagePatternBuilder {
         self
     }
 
-    pub fn lc_color(&mut self, lc_color: LoggerColors) -> &mut MessagePatternBuilder {
-        self.lc_color = Some(lc_color);
+    pub fn lc_color(&mut self, lc_color: &LoggerColors) -> &mut MessagePatternBuilder {
+        self.lc_color = Some(lc_color.clone());
         self
     }
 
-    pub fn build(self) -> MessagePattern {
+    pub fn build(&self) -> MessagePattern {
         MessagePattern {
-            pattern: self.pattern,
-            time_format: self.time_format,
+            pattern: self.pattern.clone(),
+            time_format: self.time_format.clone(),
             with_colors: self.with_colors,
-            lc_color: self.lc_color,
+            lc_color: self.lc_color.clone(),
         }
     }
-}
-
-pub fn log_by_pattern<F>(record: log::Record, fun: F)
-where
-    F: FnOnce(log::Record) -> Result<()>,
-{
 }
 
 impl MessagePattern {
-    pub fn new(
-        pattern: String,
-        time_format: String,
-        with_colors: bool,
-        lc_color: Option<LoggerColors>,
-    ) -> Self {
-        Self {
-            pattern,
-            time_format,
-            with_colors,
-            lc_color,
-        }
-    }
-
-    pub fn parse(self, record: log::Record<'static>) -> Result<String> {
+    pub fn parse(self) -> Result<Message> {
         let colors_re = regex::Regex::new(r"(?P<color>[A-Z][a-z]*)<(?P<content>[^>]+)>")?;
         let lc_re = regex::Regex::new(r"lc<(?P<content>[^>]+)>")?;
 
@@ -92,10 +72,29 @@ impl MessagePattern {
             ))
         }
 
+        let mut time_lcs = vec![];
+
+        for (origin, [content]) in lc_re.captures_iter(&self.time_format).map(|c| c.extract()) {
+            time_lcs.push((origin.to_string(), content.to_string()))
+        }
+
+        let mut time_colors = vec![];
+
+        for (origin, [color, content]) in colors_re
+            .captures_iter(&self.time_format)
+            .map(|c| c.extract())
+        {
+            time_colors.push((
+                origin,
+                color.parse::<LoggerColor>().unwrap_or_default(),
+                content,
+            ))
+        }
+
         let mut lcs = vec![];
 
         for (origin, [content]) in lc_re.captures_iter(&self.pattern).map(|c| c.extract()) {
-            lcs.push((origin, content))
+            lcs.push((origin.to_string(), content.to_string()))
         }
 
         let mut replaced = self.pattern.clone();
@@ -104,8 +103,19 @@ impl MessagePattern {
             replaced = replaced.replace(color.0, color.2);
         });
 
-        lcs.iter()
-            .for_each(|lc| replaced = replaced.replace(lc.0, lc.1));
+        lcs.iter().for_each(|lc| {
+            replaced = replaced.replace(&lc.0, &lc.1);
+        });
+
+        let mut time_format = self.time_format.clone();
+
+        time_colors.iter().for_each(|color| {
+            time_format = time_format.replace(color.0, color.2);
+        });
+
+        time_lcs.iter().for_each(|lc| {
+            time_format = time_format.replace(&lc.0, &lc.1);
+        });
 
         if self.with_colors {
             colors.iter().for_each(|color| {
@@ -113,27 +123,71 @@ impl MessagePattern {
                 replaced = format!("{}{}{}", new[0], color.2.color(color.1 .0), new[1]);
             });
 
-            if let Some(lc_color) = self.lc_color {
+            time_colors.iter().for_each(|color| {
+                let time_new = time_format.split(color.2).collect::<Vec<&str>>();
+                time_format = format!(
+                    "{}{}{}",
+                    time_new[0],
+                    color.2.color(color.1 .0),
+                    time_new[1]
+                );
+            });
+        }
+
+        let message = Message {
+            parsed: replaced,
+            time_format,
+            logger_colors: self.lc_color.clone(),
+            with_colors: self.with_colors,
+            lc: lcs,
+            time_lc: time_lcs,
+        };
+
+        Ok(message)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Message {
+    parsed: String,
+    time_format: String,
+    logger_colors: Option<LoggerColors>,
+    with_colors: bool,
+    lc: Vec<(String, String)>,
+    time_lc: Vec<(String, String)>,
+}
+
+impl Message {
+    pub fn format_parsed(&self, record: &log::Record<'_>) -> String {
+        let mut replaced = self.parsed.clone();
+
+        let mut time_format = self.time_format.clone();
+        if self.with_colors {
+            if let Some(lc_color) = &self.logger_colors {
                 let level = match record.metadata().level() {
-                    log::Level::Error => lc_color.error,
-                    log::Level::Warn => lc_color.warn,
-                    log::Level::Info => lc_color.info,
-                    log::Level::Debug => lc_color.debug,
-                    log::Level::Trace => lc_color.trace,
+                    log::Level::Error => &lc_color.error,
+                    log::Level::Warn => &lc_color.warn,
+                    log::Level::Info => &lc_color.info,
+                    log::Level::Debug => &lc_color.debug,
+                    log::Level::Trace => &lc_color.trace,
                 };
 
-                lcs.iter().for_each(|lc| {
-                    let new = replaced.split(lc.1).collect::<Vec<&str>>();
+                self.lc.iter().for_each(|lc| {
+                    let new = replaced.split(&lc.1).collect::<Vec<&str>>();
                     replaced = format!("{}{}{}", new[0], lc.1.color(level.color.0), new[1]);
+                });
+
+                self.time_lc.iter().for_each(|lc| {
+                    let time_new = time_format.split(&lc.1).collect::<Vec<&str>>();
+                    time_format = format!(
+                        "{}{}{}",
+                        time_new[0],
+                        lc.1.color(level.color.0),
+                        time_new[1]
+                    );
                 });
             }
         }
-
-        Ok(replaced)
-    }
-
-    pub fn format_args(self, record: log::Record<'static>) -> String {
-        let mut replaced = self.pattern;
 
         let args = "{args}";
         if replaced.contains(args) {
@@ -169,8 +223,8 @@ impl MessagePattern {
         let time = "{time}";
         if replaced.contains(time) {
             replaced = replaced.replace(
-                file_str,
-                &chrono::Local::now().format(&self.time_format).to_string(),
+                "{time}",
+                &chrono::Local::now().format(&time_format).to_string(),
             )
         }
 

@@ -12,14 +12,23 @@ pub enum Logger {
 
 impl Log for Logger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-        todo!()
+        match self {
+            Logger::Console(logger) => logger.enabled(metadata),
+            Logger::File(logger) => logger.enabled(metadata),
+        }
     }
 
     fn log(&self, record: &log::Record) {
-        todo!()
+        match self {
+            Logger::Console(logger) => logger.log(record),
+            Logger::File(logger) => logger.log(record),
+        }
     }
 
     fn flush(&self) {
-        todo!()
+        match self {
+            Logger::Console(logger) => logger.flush(),
+            Logger::File(logger) => logger.flush(),
+        }
     }
 }
