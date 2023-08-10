@@ -18,6 +18,10 @@ Init in code
 # cargo.toml
 [dependencies]
 log = "0.4.19"
+purrfect = { path = "./purrfect"}
+
+[workspace]
+members = ["purrfect"]
 ```
 
 ```rust
@@ -76,14 +80,8 @@ color = "Yellow"
 [[loggers]]
 
 [loggers.File]
-path = "Log.log"
+path = "File.log"
 level = "Trace"
-
-[[loggers]]
-
-[loggers.File]
-path = "Pattern.log"
-level = "Warn"
 
 [[loggers]]
 
