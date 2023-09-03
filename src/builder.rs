@@ -1,50 +1,56 @@
-use std::path::Path;
+use std::marker::PhantomData;
 
-use crate::{config::Config, loggers::Logger, prelude::Result, Purrfect};
+use crate::{
+    config::{Config, LoggerColors},
+    loggers::Logger,
+    prelude::Result,
+    Purrfect,
+};
 
-pub mod units {
-    //! This module provides unit structs for `PurrfectBuilder`
+pub struct NoLogger;
+pub struct WithLogger;
 
-    #[derive(Default, Clone)]
-    pub struct NoConfig;
-
-    #[derive(Default, Clone)]
-    pub struct ConfigFile<P: AsRef<std::path::Path>>(pub P);
+#[derive(Default)]
+pub struct PurrfectBuilder<State = NoLogger> {
+    loggers: Vec<Logger>,
+    level_colors: LoggerColors,
+    _state: PhantomData<State>,
 }
 
-#[derive(Default, Clone)]
-pub struct PurrfectBuilder<A> {
-    config: A,
-}
-
-impl PurrfectBuilder<units::NoConfig> {
-    pub fn new() -> Self {
-        PurrfectBuilder::default()
-    }
-}
-
-impl PurrfectBuilder<units::NoConfig> {
-    pub fn config<P: AsRef<Path>>(self, path: P) -> PurrfectBuilder<units::ConfigFile<P>> {
+impl PurrfectBuilder {
+    pub fn new() -> PurrfectBuilder {
         PurrfectBuilder {
-            config: units::ConfigFile::<P>(path),
+            loggers: vec![],
+            level_colors: Default::default(),
+            _state: PhantomData,
         }
     }
 
-    pub fn custom_config(self, cfg: Config) -> PurrfectBuilder<Config> {
-        PurrfectBuilder { config: cfg }
+    pub fn colors(&self, colors: LoggerColors) -> PurrfectBuilder {
+        PurrfectBuilder {
+            loggers: self.loggers,
+            level_colors: colors,
+            _state: PhantomData,
+        }
+    }
+
+    pub fn add_logger(&self, logger: Logger) -> PurrfectBuilder<WithLogger> {
+        let mut loggers = self.loggers;
+        loggers.push(logger);
+
+        PurrfectBuilder {
+            loggers,
+            level_colors: self.level_colors,
+            _state: PhantomData,
+        }
     }
 }
 
-impl<A> PurrfectBuilder<A> {
-    fn pre_build(config: Config) -> Result<()> {
-        let config_iter = config.loggers.iter();
-
-        let loggers = config_iter
-            .map(|i| i.prepare(&config))
-            .filter_map(|i| i.ok())
-            .collect::<Vec<Logger>>();
-
-        let purr = Purrfect { loggers };
+impl<State> PurrfectBuilder<State> {
+    fn pre_build(self) -> Result<()> {
+        let purr = Purrfect {
+            loggers: self.loggers,
+        };
 
         let l = log::set_boxed_logger(Box::new(purr));
 
@@ -56,18 +62,18 @@ impl<A> PurrfectBuilder<A> {
     }
 }
 
-impl<P: AsRef<Path>> PurrfectBuilder<units::ConfigFile<P>> {
+impl PurrfectBuilder<WithLogger> {
     pub fn build(self) -> Result<()> {
-        let file = std::fs::read_to_string(self.config.0)?;
-
-        let config = toml::from_str::<Config>(&file)?;
-
-        Self::pre_build(config)
+        Self::pre_build(self)
     }
 }
 
-impl PurrfectBuilder<Config> {
-    pub fn build(self) -> Result<()> {
-        Self::pre_build(self.config)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_test() {
+        PurrfectBuilder::new().add_logger(Logger::default()).build();
     }
 }
