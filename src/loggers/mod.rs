@@ -10,6 +10,12 @@ pub enum Logger {
     File(file::File),
 }
 
+impl Default for Logger {
+    fn default() -> Self {
+        Logger::Console(Console::default())
+    }
+}
+
 impl Log for Logger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         match self {
